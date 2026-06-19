@@ -196,3 +196,41 @@
   font-size: 0.95rem;
   grid-column: 1 / -1;
 }
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .header button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .filters {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .filterBtn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .viewToggles {
+    justify-content: center;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+

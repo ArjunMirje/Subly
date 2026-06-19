@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClientServer } from '@/lib/supabase-server';
+import { USE_MOCK_DATA } from '@/lib/config';
+import { cookies } from 'next/headers';
 
 function logSupabaseError(label, error) {
   console.error(`=== ${label} ===`);
@@ -22,13 +24,29 @@ function logSupabaseError(label, error) {
 
 export async function POST(request) {
   try {
-    const supabase = await createClientServer();
     const body = await request.json();
     const { username, email, password, dob, gender, phone, address } = body;
 
     if (!username || !email || !password) {
       return NextResponse.json({ error: 'Username, email and password are required' }, { status: 400 });
     }
+
+    if (USE_MOCK_DATA) {
+      console.log(`[API/SIGNUP] Signing up mock user: ${username} (${email})`);
+      const cookieStore = await cookies();
+      cookieStore.set('mock-session', 'true', { path: '/' });
+      return NextResponse.json({
+        message: 'Mock account created! Logged in successfully.',
+        user: {
+          id: 'mock-user-uuid',
+          email,
+          user_metadata: { username, full_name: username }
+        }
+      }, { status: 201 });
+    }
+
+    const supabase = await createClientServer();
+
 
     // 1. Check if username already taken (server-side, bypasses client RLS issues)
     const { data: existingUser, error: checkError } = await supabase

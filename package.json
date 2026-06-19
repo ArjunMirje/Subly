@@ -17,6 +17,8 @@
     "csv-stringify": "^6.7.0",
     "jose": "^6.2.2",
     "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.11.0",
     "next": "16.2.4",
     "node-cron": "^4.2.1",

@@ -8,6 +8,12 @@ export async function GET() {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const { USE_MOCK_DATA } = await import('@/lib/config');
+    if (USE_MOCK_DATA) {
+      const { getMockCoupons } = await import('@/lib/mock-db');
+      return NextResponse.json(getMockCoupons());
+    }
+
     const supabase = await createClientServer();
     const { data: coupons, error } = await supabase
       .from('coupons')
@@ -27,6 +33,37 @@ export async function POST(request) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { USE_MOCK_DATA } = await import('@/lib/config');
+    if (USE_MOCK_DATA) {
+      const body = await request.json();
+      const { code, discount, expiryDate, service } = body;
+      const dbExpiryDate = (expiryDate === 'Not Specified' || !expiryDate) ? null : expiryDate;
+      
+      const { getMockCoupons, saveMockCoupon } = await import('@/lib/mock-db');
+      const existing = getMockCoupons().find(c => 
+        c.userId === user.id &&
+        c.code === code &&
+        c.service === (service || '') &&
+        c.expiryDate === dbExpiryDate
+      );
+      
+      if (existing) {
+        return NextResponse.json({ error: 'This coupon already exists.' }, { status: 400 });
+      }
+      
+      const saved = saveMockCoupon({
+        userId: user.id,
+        code,
+        discount,
+        expiryDate: dbExpiryDate,
+        service: service || ''
+      });
+      
+      await checkSingleCouponNotification(saved);
+      
+      return NextResponse.json(saved, { status: 201 });
+    }
 
     const supabase = await createClientServer();
     const body = await request.json();
@@ -72,3 +109,4 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

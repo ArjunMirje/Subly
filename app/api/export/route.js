@@ -8,16 +8,27 @@ export async function GET() {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const supabase = await createClientServer();
-    const { data: subscriptions, error } = await supabase
-      .from('subscriptions')
-      .select('name, category, cost, billingCycle, renewalDate, status')
-      .eq('userId', user.id)
-      .order('name', { ascending: true });
+    const { USE_MOCK_DATA } = await import('@/lib/config');
+    let subscriptions = [];
 
-    if (error) throw error;
+    if (USE_MOCK_DATA) {
+      const { getMockSubscriptions } = await import('@/lib/mock-db');
+      subscriptions = getMockSubscriptions().filter(s => s.userId === user.id)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+      const supabase = await createClientServer();
+      const { data: dbSubscriptions, error } = await supabase
+        .from('subscriptions')
+        .select('name, category, cost, billingCycle, renewalDate, status')
+        .eq('userId', user.id)
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      subscriptions = dbSubscriptions || [];
+    }
     
     const data = [
+
       ['Service Name', 'Category', 'Cost', 'Billing Cycle', 'Next Renewal', 'Status'],
       ...subscriptions.map(sub => [
         sub.name,

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClientServer } from '@/lib/supabase-server';
-import { REQUIRE_EMAIL_VERIFICATION } from '@/lib/config';
+import { REQUIRE_EMAIL_VERIFICATION, USE_MOCK_DATA } from '@/lib/config';
+import { cookies } from 'next/headers';
 
 export async function POST(request) {
   try {
@@ -12,6 +13,22 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
+    if (USE_MOCK_DATA) {
+      console.log(`[API/LOGIN] Logging in with mock user: ${email}`);
+      const cookieStore = await cookies();
+      cookieStore.set('mock-session', 'true', { path: '/' });
+      const mockUser = {
+        id: 'mock-user-uuid',
+        email: email,
+        email_confirmed_at: new Date().toISOString(),
+        user_metadata: { username: email.split('@')[0], full_name: 'Test User' }
+      };
+      return NextResponse.json({
+        user: mockUser,
+        session: { access_token: 'mock-token', expires_at: 9999999999 }
+      });
+    }
+
     // Initialize server-side Supabase client with cookies integration
     const supabase = await createClientServer();
 
@@ -20,6 +37,7 @@ export async function POST(request) {
       email,
       password,
     });
+
 
     if (authError) {
       console.warn(`[API/LOGIN] Supabase signInWithPassword failed for ${email}: ${authError.message}`);

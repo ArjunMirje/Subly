@@ -1,0 +1,47 @@
+[
+  {
+    "id": "notif-1",
+    "userId": "mock-user-uuid",
+    "title": "AutoPay Renewal Reminder",
+    "message": "Your AutoPay subscription of Netflix is going to auto-renew on 21/6/2026. This is just a reminder.",
+    "isRead": false,
+    "type": "renewal",
+    "created_at": "2026-06-19T20:33:24.892Z"
+  },
+  {
+    "id": "notif-2",
+    "userId": "mock-user-uuid",
+    "title": "Upcoming Renewal",
+    "message": "Spotify renews in 3 days or less.",
+    "isRead": false,
+    "type": "renewal",
+    "created_at": "2026-06-19T20:33:24.892Z"
+  },
+  {
+    "userId": "mock-user-uuid",
+    "title": "AutoPay Renewal Reminder",
+    "message": "Your AutoPay subscription of Netflix is going to auto-renew on 21/6/2026. Please review it before renewal. This is just a reminder.​sub-netflix​1​2026-06-21​1",
+    "type": "renewal",
+    "isRead": false,
+    "id": "notif-1781901204893",
+    "created_at": "2026-06-19T20:33:24.893Z"
+  },
+  {
+    "userId": "mock-user-uuid",
+    "title": "Coupon Expiring Soon",
+    "message": "Your coupon SPOTIFYFREE for Spotify expires on 23 June 2026.",
+    "type": "coupon",
+    "isRead": false,
+    "id": "notif-1781901204894",
+    "created_at": "2026-06-19T20:33:24.894Z"
+  },
+  {
+    "userId": "mock-user-uuid",
+    "title": "AutoPay Renewal Reminder",
+    "message": "Your AutoPay subscription of Netflix Test is going to auto-renew on 21/6/2026. Please review it before renewal. This is just a reminder.​sub-1781901519078​1​2026-06-21​1",
+    "type": "renewal",
+    "isRead": false,
+    "id": "notif-1781901519079",
+    "created_at": "2026-06-19T20:38:39.079Z"
+  }
+]

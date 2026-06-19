@@ -202,3 +202,12 @@
   transform: translateY(-50%);
   box-shadow: 0 0 10px var(--primary);
 }
+
+@media (max-width: 480px) {
+  .dropdown {
+    width: calc(100vw - 32px);
+    right: 16px;
+    top: 60px;
+  }
+}
+

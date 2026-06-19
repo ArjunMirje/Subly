@@ -170,3 +170,50 @@ input:focus, select:focus, textarea:focus {
   color: var(--text-muted);
   border: 1px solid var(--border);
 }
+
+/* Global Responsive Table Styles */
+.tableContainer {
+  overflow-x: auto;
+  padding: 1rem;
+  width: 100%;
+}
+
+.tableContainer::-webkit-scrollbar {
+  height: 6px;
+}
+.tableContainer::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+.tableContainer::-webkit-scrollbar-thumb {
+  background: var(--border-heavy);
+  border-radius: 3px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th, .table td {
+  padding: 1.125rem 1rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+

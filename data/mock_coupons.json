@@ -1,0 +1,20 @@
+[
+  {
+    "id": "coupon-netflix",
+    "userId": "mock-user-uuid",
+    "code": "NETFLIX50",
+    "discount": "50%",
+    "expiryDate": "",
+    "service": "Netflix",
+    "created_at": "2026-06-19T20:33:24.890Z"
+  },
+  {
+    "id": "coupon-spotify",
+    "userId": "mock-user-uuid",
+    "code": "SPOTIFYFREE",
+    "discount": "100%",
+    "expiryDate": "2026-06-23",
+    "service": "Spotify",
+    "created_at": "2026-06-19T20:33:24.890Z"
+  }
+]

@@ -9,6 +9,16 @@ export async function GET() {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const { USE_MOCK_DATA } = await import('@/lib/config');
+    if (USE_MOCK_DATA) {
+      await checkAndGenerateNotifications();
+      const { getMockNotifications } = await import('@/lib/mock-db');
+      const allNotifs = getMockNotifications();
+      const userNotifs = allNotifs.filter(n => n.userId === user.id)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      return NextResponse.json(userNotifs);
+    }
+
     // Run an on-demand check so the user always sees up-to-date reminders
     // without waiting for the next hourly cron tick
     await checkAndGenerateNotifications();
@@ -35,6 +45,13 @@ export async function PATCH() {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const { USE_MOCK_DATA } = await import('@/lib/config');
+    if (USE_MOCK_DATA) {
+      const { markMockNotificationsAsRead } = await import('@/lib/mock-db');
+      markMockNotificationsAsRead();
+      return NextResponse.json({ success: true });
+    }
+
     const supabase = await createClientServer();
     const { error } = await supabase
       .from('notifications')
@@ -49,3 +66,4 @@ export async function PATCH() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

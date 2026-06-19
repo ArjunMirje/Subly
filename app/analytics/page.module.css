@@ -85,3 +85,21 @@
   color: var(--text-secondary);
   font-size: 1.25rem;
 }
+
+@media (max-width: 768px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .summaryStats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .statBox {
+    width: 100%;
+  }
+}
+

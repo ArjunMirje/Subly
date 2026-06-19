@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, WalletCards, Tags, BarChart3, FileText, Bell, LogOut } from 'lucide-react';
+import { LayoutDashboard, WalletCards, Tags, BarChart3, FileText, Bell, LogOut, Menu, X } from 'lucide-react';
 import styles from './MainLayout.module.css';
 import { useState, useEffect } from 'react';
 import SubscriptionModal from '@/components/SubscriptionModal';
@@ -23,6 +23,7 @@ export default function MainLayout({ children }) {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [user, setUser] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Check if current route is a public/auth route
   const isPublicRoute = pathname === '/' || pathname === '/login' || pathname === '/signup';
@@ -45,9 +46,10 @@ export default function MainLayout({ children }) {
     }
   }, [isPublicRoute, user]);
 
-  // Close notifications dropdown when navigating/changing tabs
+  // Close notifications dropdown and sidebar when navigating/changing tabs
   useEffect(() => {
     setIsNotifOpen(false);
+    setIsSidebarOpen(false);
   }, [pathname]);
 
   const fetchUser = async () => {
@@ -107,8 +109,16 @@ export default function MainLayout({ children }) {
 
   return (
     <div className={styles.container}>
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className={styles.sidebarOverlay} 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={styles.sidebar}>
+      <aside className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.logo}>
           <Image 
             src="/logo.png" 
@@ -120,6 +130,14 @@ export default function MainLayout({ children }) {
             unoptimized
           />
           <h1 className={styles.logoText}>Subly</h1>
+          <button 
+            type="button"
+            className={styles.closeSidebarBtn} 
+            onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close Sidebar"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className={styles.nav}>
@@ -156,6 +174,15 @@ export default function MainLayout({ children }) {
       {/* Main Content Area */}
       <main className={styles.main}>
         <header className={styles.header}>
+          <button 
+            type="button"
+            className={styles.hamburger} 
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Open Sidebar"
+          >
+            <Menu size={24} />
+          </button>
+
           <div className={styles.headerActions}>
             <div className={styles.notifWrapper}>
               <button 

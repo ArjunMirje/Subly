@@ -147,3 +147,41 @@
   color: #000 !important;
   font-weight: 700;
 }
+
+/* Custom scrollbar styling for tables */
+.tableContainer::-webkit-scrollbar {
+  height: 6px;
+}
+.tableContainer::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+.tableContainer::-webkit-scrollbar-thumb {
+  background: var(--border-heavy);
+  border-radius: 3px;
+}
+
+@media (max-width: 600px) {
+  .header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .tabsContainer {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  
+  .tabBtn {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .tableContainer {
+    padding: 0.5rem;
+  }
+}
+

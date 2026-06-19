@@ -229,16 +229,23 @@
 @media (max-width: 600px) {
   .header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 1rem;
   }
 
   .headerButtons {
     width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .headerButtons button {
-    flex: 1;
+    width: 100%;
     justify-content: center;
   }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
+
