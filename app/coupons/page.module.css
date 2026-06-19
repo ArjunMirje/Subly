@@ -1,0 +1,244 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.couponCard {
+  padding: 1.5rem;
+  background: linear-gradient(145deg, var(--surface), var(--surface-hover));
+  border: 1px dashed var(--border-heavy);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.couponCard::before,
+.couponCard::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  background-color: var(--background);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.couponCard::before {
+  left: -10px;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.couponCard::after {
+  right: -10px;
+  border-left: 1px solid var(--border-subtle);
+}
+
+.couponCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  border-color: var(--secondary);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.serviceTag {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.cardCenter {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.icon {
+  color: var(--secondary);
+}
+
+.cardCenter h2 {
+  font-size: 2.25rem;
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: -0.05em;
+}
+
+.cardBottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.codeContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+.scissors {
+  color: var(--text-muted);
+}
+
+.code {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  color: var(--primary);
+}
+
+.expiryLabel {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+}
+
+/* ── Card action row (Edit / Delete) ─────────────────────────────────────── */
+
+.cardActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.editBtn {
+  color: var(--primary);
+  background-color: rgba(122, 162, 247, 0.1);
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: var(--transition);
+}
+
+.editBtn:hover {
+  background-color: rgba(122, 162, 247, 0.2);
+}
+
+.deleteBtn {
+  color: var(--danger);
+  background-color: rgba(247, 118, 142, 0.1);
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: var(--transition);
+}
+
+.deleteBtn:hover {
+  background-color: rgba(247, 118, 142, 0.2);
+}
+
+/* ── Header buttons group ────────────────────────────────────────────────── */
+
+.headerButtons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.addCouponBtn {
+  background: var(--primary);
+  color: #ffffff !important;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: var(--transition);
+  border: 1px solid var(--border-heavy);
+}
+
+.addCouponBtn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.scanCouponBtn {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: var(--transition);
+  border: 1px solid var(--border-heavy);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.scanCouponBtn:hover {
+  background: var(--surface-hover);
+  border-color: var(--secondary);
+  color: var(--secondary);
+  transform: translateY(-1px);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .headerButtons {
+    width: 100%;
+  }
+
+  .headerButtons button {
+    flex: 1;
+    justify-content: center;
+  }
+}

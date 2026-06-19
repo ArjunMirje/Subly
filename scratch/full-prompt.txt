@@ -1,0 +1,135 @@
+<USER_REQUEST>
+Improve the existing Coupon Scanner OCR and fix the AutoPay schema issue.
+
+STRICT INSTRUCTIONS:
+
+Do NOT redesign the website.
+Do NOT change authentication.
+Do NOT change dashboard layout.
+Do NOT change subscriptions logic except for fixing the AutoPay error.
+Do NOT change analytics.
+Do NOT change reports.
+Do NOT change notifications except where explicitly mentioned.
+Do NOT modify unrelated pages or styling.
+
+Only improve:
+1. Coupon Scanner OCR accuracy and extraction
+2. AutoPay database schema error
+
+==================================================
+PART 1 – IMPROVE OCR ACCURACY
+==================================================
+
+The camera and screenshot upload features are already working correctly.
+
+The problem is that text extraction and coupon field detection are inaccurate.
+
+Improve the OCR pipeline while keeping the existing UI.
+
+--------------------------------------------------
+1. IMAGE PREPROCESSING
+--------------------------------------------------
+
+Before running Tesseract OCR:
+
+1. Resize the image to improve text clarity.
+2. Convert image to grayscale.
+3. Increase contrast.
+4. Apply slight sharpening.
+5. Apply thresholding (black/white conversion) when beneficial.
+6. Reduce noise if possible.
+
+These preprocessing steps should happen automatically before OCR.
+
+Do not require any user interaction.
+
+--------------------------------------------------
+2. TESSERACT CONFIGURATION
+--------------------------------------------------
+
+Improve Tesseract settings.
+
+Use settings optimized for coupon screenshots:
+
+tessedit_pageseg_mode: 6
+preserve_interword_spaces: 1
+
+Enable confidence checks and clean OCR output before parsing.
+
+--------------------------------------------------
+3. CLEAN OCR TEXT
+--------------------------------------------------
+
+Before extracting coupon information:
+
+- Remove extra spaces.
+- Remove duplicate words.
+- Remove unnecessary line breaks.
+- Convert text into a clean searchable format.
+
+==================================================
+PART 2 – IMPROVE COUPON CODE 
+<truncated 4827 bytes>
+ Screenshot upload still works
+✓ OCR accuracy improves
+✓ COPY is not detected as coupon code
+✓ Discounts are detected correctly
+✓ Service detection improves
+✓ Expiry defaults to "Not Specified"
+✓ User can edit all fields
+✓ Coupons save correctly
+✓ Existing Coupon Vault remains intact
+✓ AutoPay toggle works
+✓ autopayEnabled persists after refresh
+✓ No schema cache error remains
+✓ No unrelated UI changes were made
+
+==================================================
+EXPECTED RESULT
+==================================================
+
+User uploads a coupon screenshot:
+
+Example:
+
+Use code NETFLIX20
+20% OFF
+Applicable on Netflix
+
+Detected Coupon:
+
+Coupon Code:
+NETFLIX20
+
+Discount:
+20% OFF
+
+Expiry Date:
+Not Specified
+
+Service:
+Netflix
+
+User can edit if needed and save directly into Coupon Vault.
+
+AutoPay should work without the error:
+
+"Could not find the 'autopayEnabled' column of 'subscriptions' in the schema cache".
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-13T15:07:45+05:30.
+
+The user's current state is as follows:
+Other open documents:
+- c:\Users\avmir\OneDrive\Desktop\Subly\data\migration_autopay.sql (LANGUAGE_SQL)
+- c:\Users\avmir\OneDrive\Desktop\Subly\components\CouponModal.js (LANGUAGE_JAVASCRIPT)
+- c:\Users\avmir\OneDrive\Desktop\Subly\app\analytics\page.js (LANGUAGE_JAVASCRIPT)
+- c:\Users\avmir\OneDrive\Desktop\Subly\app\dashboard\page.js (LANGUAGE_JAVASCRIPT)
+- c:\Users\avmir\OneDrive\Desktop\Subly\app\api\auth\logout\route.js (LANGUAGE_JAVASCRIPT)
+Browser State:
+  Page 3601C215890849F3EF1439E9D611C2CC (Vantage widget) - https://vantage.csw.lenovo.com/v1/web/containerwidget/default/ [ACTIVE]
+    Viewport: 16x16, Page Height: 16
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.5 Flash (Low) to Gemini 3.5 Flash (High). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

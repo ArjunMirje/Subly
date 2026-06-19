@@ -1,0 +1,178 @@
+/* SubscriptionModal.module.css
+   Scoped styles for the coupon section inside SubscriptionModal.
+   Base modal styles live in Modal.module.css. */
+
+/* Slightly wider modal to comfortably fit the coupon cost breakdown */
+.modal {
+  max-width: 540px;
+}
+
+/* ── Coupon section container ──────────────────────────────────────────── */
+.couponSection {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.couponSectionLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* ── Empty state (no coupon) ───────────────────────────────────────────── */
+.couponEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.noCouponText {
+  font-size: 0.85rem;
+  color: var(--text-muted, #565f89);
+}
+
+.selectCouponBtn {
+  background: rgba(122, 162, 247, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(122, 162, 247, 0.3);
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background 0.18s, border-color 0.18s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.selectCouponBtn:hover {
+  background: rgba(122, 162, 247, 0.22);
+  border-color: rgba(122, 162, 247, 0.5);
+}
+
+/* ── Applied coupon ────────────────────────────────────────────────────── */
+.couponApplied {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.couponAppliedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.couponAppliedBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.couponAppliedCode {
+  font-family: 'Courier New', monospace;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--primary);
+  letter-spacing: 0.06em;
+  background: rgba(122, 162, 247, 0.1);
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.couponAppliedDiscount {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #9ece6a;
+  background: rgba(158, 206, 106, 0.12);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.couponAppliedService {
+  font-size: 0.78rem;
+  color: var(--text-muted, #565f89);
+  background: var(--surface);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* ── Cost breakdown table ──────────────────────────────────────────────── */
+.costBreakdown {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.costRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.discountValue {
+  color: #9ece6a;
+  font-weight: 600;
+}
+
+.estimatedRow {
+  border-top: 1px solid var(--border);
+  padding-top: 0.3rem;
+  margin-top: 0.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
+
+.estimatedValue {
+  color: var(--primary);
+}
+
+/* ── Action buttons row ────────────────────────────────────────────────── */
+.couponActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.changeCouponBtn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(122, 162, 247, 0.08);
+  border: 1px solid rgba(122, 162, 247, 0.25);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.changeCouponBtn:hover {
+  background: rgba(122, 162, 247, 0.18);
+}
+
+.removeCouponBtn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--danger, #f7768e);
+  background: rgba(247, 118, 142, 0.08);
+  border: 1px solid rgba(247, 118, 142, 0.25);
+  padding: 0.3rem 0.75rem;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.removeCouponBtn:hover {
+  background: rgba(247, 118, 142, 0.18);
+}

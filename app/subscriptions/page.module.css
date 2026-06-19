@@ -1,0 +1,198 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--surface-raised);
+  padding-bottom: 1.5rem;
+}
+
+.header h1 {
+  font-size: 2.25rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.03em;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--surface-raised);
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.filters {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filterBtn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: var(--transition);
+}
+
+.filterBtn:hover {
+  background-color: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.activeFilter {
+  background-color: var(--primary);
+  color: #000;
+}
+
+.viewToggles {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toggleBtn {
+  padding: 0.5rem;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggleBtn:hover {
+  background-color: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.activeToggle {
+  background-color: var(--surface-hover);
+  color: var(--primary);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+
+.card:hover {
+  border-color: var(--border-heavy);
+  box-shadow: var(--shadow-md);
+  background: var(--surface-hover);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.cardHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.cardBody p {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.cardBody strong {
+  color: var(--text-primary);
+}
+
+.cardActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.textBtn {
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.textBtn:hover {
+  text-decoration: underline;
+}
+
+.dangerText {
+  color: var(--danger);
+}
+
+.addSubscriptionBtn {
+  background: var(--primary);
+  color: #ffffff !important; /* User specifically requested white */
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.875rem;
+  transition: var(--transition);
+  border: 1px solid var(--border-heavy);
+}
+
+.editBtn {
+  color: var(--primary);
+  background-color: rgba(122, 162, 247, 0.1);
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.editBtn:hover {
+  background-color: rgba(122, 162, 247, 0.2);
+}
+
+.deleteBtn {
+  color: var(--danger);
+  background-color: rgba(247, 118, 142, 0.1);
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.deleteBtn:hover {
+  background-color: rgba(247, 118, 142, 0.2);
+}
+
+/* ── Content area wrapper ─────────────────────────────────────────────── */
+.contentArea {
+  min-height: 200px;
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────── */
+.empty {
+  color: var(--text-muted, #565f89);
+  text-align: center;
+  padding: 3rem 1rem;
+  font-size: 0.95rem;
+  grid-column: 1 / -1;
+}
