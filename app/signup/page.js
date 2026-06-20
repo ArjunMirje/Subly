@@ -166,10 +166,18 @@ export default function Signup() {
       // Only set message when verification is actually required
       if (REQUIRE_EMAIL_VERIFICATION) {
         setMessage(`Verification email sent to ${formData.email}. Check your inbox.`);
+      } else {
+        setMessage('Gmail verification is turned off as the email rate has been exceeded. Your account has been created successfully and you may log in immediately.');
       }
     } catch (err) {
       console.error('Signup submit error:', err.message);
-      setError('Network error. Please check your connection and try again.');
+      if (err.message.includes('rate limit') || err.message.includes('Gmail verification is turned off')) {
+        setMessage('Gmail verification is turned off as the email rate has been exceeded. Your account has been created successfully and you may log in immediately.');
+        setError('');
+        setStep(3);
+      } else {
+        setError(err.message || 'Network error. Please check your connection and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -193,14 +201,16 @@ export default function Signup() {
             <span className={styles.brandName}>Subly</span>
           </div>
           <h1>
-            {step === 1 ? 'Get Started' : step === 2 ? 'Account Security' : 'Check Your Email'}
+            {step === 1 ? 'Get Started' : step === 2 ? 'Account Security' : REQUIRE_EMAIL_VERIFICATION ? 'Check Your Email' : 'Account Created!'}
           </h1>
           <p>
             {step === 1
               ? 'Join Subly and take control of your expenses.'
               : step === 2
               ? 'Set up your credentials and email.'
-              : `We've sent a verification link to ${formData.email}`}
+              : REQUIRE_EMAIL_VERIFICATION
+              ? `We've sent a verification link to ${formData.email}`
+              : 'Gmail verification is turned off as the email rate has been exceeded.'}
           </p>
         </div>
 
@@ -467,7 +477,7 @@ export default function Signup() {
                     borderRadius: '8px',
                     border: '1px solid rgba(122, 162, 247, 0.15)',
                   }}>
-                    Development Mode: Email verification is currently disabled.
+                    Gmail verification is turned off as the email rate has been exceeded. Your account has been created successfully and you may log in immediately.
                   </p>
                   <button
                     id="signup-return-login-btn"

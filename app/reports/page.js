@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Download, FileText, Loader2 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import styles from './page.module.css';
 import { parseJsonResponse } from '@/lib/api-client';
 
@@ -183,13 +185,10 @@ export default function Reports() {
       const allSubscriptions = await parseJsonResponse(subRes, '/api/subscriptions');
       const coupons = await parseJsonResponse(couponRes, '/api/coupons');
 
-      // Dynamically import jsPDF packages to prevent Next SSR issues
-      const { jsPDF } = await import('jspdf');
-      const autoTable = (await import('jspdf-autotable')).default;
 
       // Data Processing
-      const activeSubs = allSubscriptions.filter(s => s.status !== 'expired');
-      const expiredSubs = allSubscriptions.filter(s => s.status === 'expired');
+      const activeSubs = allSubscriptions.filter(s => s.status !== 'expired' || s.autopayEnabled);
+      const expiredSubs = allSubscriptions.filter(s => s.status === 'expired' && !s.autopayEnabled);
 
       const totalMonthly = activeSubs.reduce((acc, sub) => {
         if (sub.billingCycle === 'yearly') return acc + (sub.cost / 12);
@@ -273,6 +272,40 @@ export default function Reports() {
         format: 'a4'
       });
 
+// Load Roboto fonts for proper ₹ rendering
+const robotoRegular = await fetch('/Roboto-Regular.ttf')
+  .then(r => r.arrayBuffer())
+  .then(buf => {
+    const binary = [];
+    const bytes = new Uint8Array(buf);
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary.push(String.fromCharCode(bytes[i]));
+    }
+    return binary.join('');
+  });
+
+doc.addFileToVFS('Roboto-Regular.ttf', robotoRegular);
+
+doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+
+const robotoBold = await fetch('/Roboto-Bold.ttf')
+  .then(r => r.arrayBuffer())
+  .then(buf => {
+    const binary = [];
+    const bytes = new Uint8Array(buf);
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary.push(String.fromCharCode(bytes[i]));
+    }
+    return binary.join('');
+  });
+
+doc.addFileToVFS('Roboto-Bold.ttf', robotoBold);
+
+doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+
+// Set default font for the document
+doc.setFont('Roboto', 'normal');
+
       // ── PAGE 1: COVER & SUMMARY ──
       // Header graphic background
       doc.setFillColor(122, 162, 247);
@@ -307,8 +340,8 @@ export default function Reports() {
 
       // Four grid boxes
       const stats = [
-        { label: 'Monthly Spend', value: `₹${totalMonthly.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` },
-        { label: 'Yearly Estimate', value: `₹${totalYearly.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` },
+        { label: 'Monthly Spend', value: `₹${totalMonthly.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+        { label: 'Yearly Estimate', value: `₹${totalYearly.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
         { label: 'Active Services', value: `${activeSubs.length}` },
         { label: 'Expired Services', value: `${expiredSubs.length}` }
       ];
@@ -340,7 +373,7 @@ export default function Reports() {
 
       const categoryRows = Object.keys(categorySpend).map(cat => [
         cat,
-        `₹${categorySpend[cat].toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+        `₹${categorySpend[cat].toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       ]);
 
       autoTable(doc, {
@@ -391,7 +424,7 @@ export default function Reports() {
 
       const subTableRows = activeSubs.map(s => [
         s.name,
-        `₹${s.cost}`,
+        `₹${parseFloat(s.cost).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         s.billingCycle,
         s.renewalDate || 'N/A',
         s.autopayEnabled ? 'ON' : 'OFF'
@@ -448,7 +481,7 @@ export default function Reports() {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
             doc.setTextColor(13, 14, 18);
-            doc.text(`• ${sub.name} - renewing on ${sub.renewalDate} (Cost: ₹${sub.cost})`, 20, renewY);
+            doc.text(`• ${sub.name} - renewing on ${sub.renewalDate} (Cost: ₹${parseFloat(sub.cost).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`, 20, renewY);
             renewY += 5.5;
           });
           renewY += 3;
@@ -476,7 +509,7 @@ export default function Reports() {
       const autopayRows = autopaySubs.map(s => [
         s.name,
         s.renewalDate || 'N/A',
-        `₹${s.cost}`
+        `₹${parseFloat(s.cost).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       ]);
 
       if (autopayRows.length === 0) {
@@ -504,11 +537,17 @@ export default function Reports() {
       doc.setFontSize(9.5);
       doc.text(`Total Coupons: ${coupons.length}  |  Active: ${activeCoupons}  |  Expiring (7 days): ${expiringCoupons}`, 15, nextY2 + 5.5);
 
-      const couponRows = coupons.map(c => [
-        c.code,
-        c.discount || '-',
-        c.expiryDate || 'Global / Not Specified'
-      ]);
+      const couponRows = coupons.map(c => {
+        let discountStr = c.discount || '-';
+        if (discountStr !== '-' && !discountStr.includes('%') && !discountStr.startsWith('₹') && !isNaN(parseFloat(discountStr))) {
+          discountStr = `₹${parseFloat(discountStr).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        return [
+          c.code,
+          discountStr,
+          c.expiryDate || 'Global / Not Specified'
+        ];
+      });
 
       if (couponRows.length === 0) {
         couponRows.push(['No coupons registered.', '-', '-']);

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import styles from '../signup/auth.module.css';
 import { parseJsonResponse } from '@/lib/api-client';
+import { REQUIRE_EMAIL_VERIFICATION } from '@/lib/config';
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -18,7 +19,7 @@ export default function Login() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('error') === 'verify') {
+      if (REQUIRE_EMAIL_VERIFICATION && params.get('error') === 'verify') {
         setError('Please verify your email address before logging in.');
       }
     }

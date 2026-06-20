@@ -133,9 +133,20 @@ export default function Coupons() {
               {/* ── Top row: service tag + status badge ── */}
               <div className={styles.cardTop}>
                 <div className={styles.serviceTag}>{coupon.service || 'Global'}</div>
-                <span className={`status-badge status-${coupon.status === 'valid' ? 'active' : coupon.status === 'expired' ? 'danger' : 'warning'}`}>
-                  {coupon.status.replace('-', ' ')}
-                </span>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <span className={`status-badge status-${coupon.status === 'valid' ? 'active' : coupon.status === 'expired' ? 'danger' : 'warning'}`}>
+                    {coupon.status.replace('-', ' ')}
+                  </span>
+                  {coupon.usageStatus && (
+                    <span className={`status-badge ${
+                      coupon.usageStatus === 'Available' ? styles.usageAvailable :
+                      coupon.usageStatus === 'In Use' ? styles.usageInUse :
+                      coupon.usageStatus === 'Consumed' ? styles.usageConsumed : ''
+                    }`}>
+                      {coupon.usageStatus}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* ── Centre: discount amount ── */}

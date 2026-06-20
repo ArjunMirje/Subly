@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, WalletCards, Tags, BarChart3, FileText, Bell, LogOut, Menu, X } from 'lucide-react';
 import styles from './MainLayout.module.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import SubscriptionModal from '@/components/SubscriptionModal';
 import NotificationDropdown from '@/components/NotificationDropdown';
 import { parseJsonResponse } from '@/lib/api-client';
@@ -24,6 +24,7 @@ export default function MainLayout({ children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const notifRef = useRef(null);
 
   // Check if current route is a public/auth route
   const isPublicRoute = pathname === '/' || pathname === '/login' || pathname === '/signup';
@@ -184,7 +185,7 @@ export default function MainLayout({ children }) {
           </button>
 
           <div className={styles.headerActions}>
-            <div className={styles.notifWrapper}>
+            <div ref={notifRef} className={styles.notifWrapper}>
               <button 
                 className={styles.iconButton} 
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -193,7 +194,7 @@ export default function MainLayout({ children }) {
                 {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
               </button>
               {isNotifOpen && (
-                <NotificationDropdown onClose={() => setIsNotifOpen(false)} />
+                <NotificationDropdown triggerRef={notifRef} onClose={() => setIsNotifOpen(false)} />
               )}
             </div>
           </div>

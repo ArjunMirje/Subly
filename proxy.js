@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
-import { REQUIRE_EMAIL_VERIFICATION, USE_MOCK_DATA } from './lib/config';
+import { REQUIRE_EMAIL_VERIFICATION } from './lib/config';
 
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
@@ -12,51 +12,38 @@ export async function proxy(request) {
     },
   });
 
-  let user = null;
-
-  if (USE_MOCK_DATA) {
-    const hasMockSession = request.cookies.get('mock-session')?.value === 'true';
-    if (hasMockSession) {
-      user = {
-        id: 'mock-user-uuid',
-        email: 'test@example.com',
-        email_confirmed_at: new Date().toISOString()
-      };
-    }
-  } else {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            console.log('[PROXY] Propagating session cookies to request and response.');
-            cookiesToSet.forEach(({ name, value, options }) =>
-              request.cookies.set(name, value)
-            );
-            response = NextResponse.next({
-              request: {
-                headers: request.headers,
-              },
-            });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options)
-            );
-          },
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
         },
-      }
-    );
-
-    const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
-    user = supabaseUser;
-
-    if (error) {
-      console.error('[PROXY] Error retrieving user:', error.message);
+        setAll(cookiesToSet) {
+          console.log('[PROXY] Propagating session cookies to request and response.');
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
     }
+  );
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+
+  if (error) {
+    console.error('[PROXY] Error retrieving user:', error.message);
   }
+
 
   const isAuthPage = pathname === '/login' || pathname === '/signup';
 

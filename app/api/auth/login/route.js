@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClientServer } from '@/lib/supabase-server';
-import { REQUIRE_EMAIL_VERIFICATION, USE_MOCK_DATA } from '@/lib/config';
-import { cookies } from 'next/headers';
+import { REQUIRE_EMAIL_VERIFICATION } from '@/lib/config';
 
 export async function POST(request) {
   try {
@@ -13,22 +12,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    if (USE_MOCK_DATA) {
-      console.log(`[API/LOGIN] Logging in with mock user: ${email}`);
-      const cookieStore = await cookies();
-      cookieStore.set('mock-session', 'true', { path: '/' });
-      const mockUser = {
-        id: 'mock-user-uuid',
-        email: email,
-        email_confirmed_at: new Date().toISOString(),
-        user_metadata: { username: email.split('@')[0], full_name: 'Test User' }
-      };
-      return NextResponse.json({
-        user: mockUser,
-        session: { access_token: 'mock-token', expires_at: 9999999999 }
-      });
-    }
-
     // Initialize server-side Supabase client with cookies integration
     const supabase = await createClientServer();
 
@@ -38,10 +21,33 @@ export async function POST(request) {
       password,
     });
 
+    console.log('[API/LOGIN] Supabase signInWithPassword response details:', {
+      user: data?.user ? { id: data.user.id, email: data.user.email } : null,
+      session: data?.session ? { expires_at: data.session.expires_at, expires_in: data.session.expires_in } : null,
+      error: authError ? { message: authError.message, status: authError.status, code: authError.code } : null
+    });
 
     if (authError) {
       console.warn(`[API/LOGIN] Supabase signInWithPassword failed for ${email}: ${authError.message}`);
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+
+    // Attempt to fetch profile to log any profile retrieval issues
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('[API/LOGIN] Profile fetch error details:', {
+        message: profileError.message,
+        code: profileError.code,
+        details: profileError.details,
+        hint: profileError.hint
+      });
+    } else {
+      console.log('[API/LOGIN] Profile fetch details:', profile);
     }
 
     // Check email verification only when enabled
@@ -64,3 +70,4 @@ export async function POST(request) {
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
   }
 }
+

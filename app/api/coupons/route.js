@@ -1,29 +1,95 @@
 import { NextResponse } from 'next/server';
 import { createClientServer } from '@/lib/supabase-server';
 import { getAuthUser } from '@/lib/auth';
-import { checkSingleCouponNotification } from '@/lib/cron';
+import { checkSingleCouponNotification, processAutopayRenewals } from '@/lib/cron';
 
 export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { USE_MOCK_DATA } = await import('@/lib/config');
-    if (USE_MOCK_DATA) {
-      const { getMockCoupons } = await import('@/lib/mock-db');
-      return NextResponse.json(getMockCoupons());
-    }
-
     const supabase = await createClientServer();
-    const { data: coupons, error } = await supabase
+    await processAutopayRenewals(supabase);
+    
+    // Safely query coupons with dynamic fallback if column doesn't exist
+    let couponsResult;
+    let hasUsageStatusColumn = true;
+    
+    let queryResult = await supabase
       .from('coupons')
-      .select('*')
+      .select('id, userId, code, discount, expiryDate, service, created_at, usageStatus')
       .eq('userId', user.id)
       .order('expiryDate', { ascending: true });
 
-    if (error) throw error;
+    if (queryResult.error && queryResult.error.message.includes('usageStatus')) {
+      hasUsageStatusColumn = false;
+      queryResult = await supabase
+        .from('coupons')
+        .select('id, userId, code, discount, expiryDate, service, created_at')
+        .eq('userId', user.id)
+        .order('expiryDate', { ascending: true });
+    }
 
-    return NextResponse.json(coupons);
+    if (queryResult.error) throw queryResult.error;
+    const rawCoupons = queryResult.data || [];
+
+    // Fetch user subscriptions to run lifecycle synchronization
+    const { data: subscriptions, error: subsError } = await supabase
+      .from('subscriptions')
+      .select('id, status, renewalDate, couponId, autopayEnabled')
+      .eq('userId', user.id);
+
+    if (subsError) throw subsError;
+    const safeSubs = subscriptions || [];
+
+    // Synchronize statuses in real-time
+    const updatedCoupons = await Promise.all(rawCoupons.map(async (coupon) => {
+      let dbStatus = hasUsageStatusColumn ? (coupon.usageStatus || 'Available') : 'Available';
+      
+      const linkedSub = safeSubs.find(sub => sub.couponId === coupon.id);
+      let computedStatus = dbStatus;
+
+      if (linkedSub) {
+        let isCycleCompleted = false;
+        if (linkedSub.autopayEnabled) {
+          isCycleCompleted = false;
+        } else if (linkedSub.status === 'expired') {
+          isCycleCompleted = true;
+        } else if (linkedSub.renewalDate) {
+          const [y, m, d] = linkedSub.renewalDate.split('-').map(Number);
+          const renewalMidnight = new Date(y, m - 1, d);
+          const todayMidnight = new Date();
+          todayMidnight.setHours(0, 0, 0, 0);
+          isCycleCompleted = todayMidnight >= renewalMidnight;
+        }
+
+        if (isCycleCompleted) {
+          computedStatus = 'Consumed';
+        } else {
+          computedStatus = 'In Use';
+        }
+      } else {
+        if (dbStatus === 'Consumed') {
+          computedStatus = 'Consumed';
+        } else {
+          computedStatus = 'Available';
+        }
+      }
+
+      if (hasUsageStatusColumn && computedStatus !== dbStatus) {
+        await supabase
+          .from('coupons')
+          .update({ usageStatus: computedStatus })
+          .eq('id', coupon.id);
+      }
+
+      return {
+        ...coupon,
+        usageStatus: computedStatus
+      };
+    }));
+
+    return NextResponse.json(updatedCoupons);
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -33,37 +99,6 @@ export async function POST(request) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const { USE_MOCK_DATA } = await import('@/lib/config');
-    if (USE_MOCK_DATA) {
-      const body = await request.json();
-      const { code, discount, expiryDate, service } = body;
-      const dbExpiryDate = (expiryDate === 'Not Specified' || !expiryDate) ? null : expiryDate;
-      
-      const { getMockCoupons, saveMockCoupon } = await import('@/lib/mock-db');
-      const existing = getMockCoupons().find(c => 
-        c.userId === user.id &&
-        c.code === code &&
-        c.service === (service || '') &&
-        c.expiryDate === dbExpiryDate
-      );
-      
-      if (existing) {
-        return NextResponse.json({ error: 'This coupon already exists.' }, { status: 400 });
-      }
-      
-      const saved = saveMockCoupon({
-        userId: user.id,
-        code,
-        discount,
-        expiryDate: dbExpiryDate,
-        service: service || ''
-      });
-      
-      await checkSingleCouponNotification(saved);
-      
-      return NextResponse.json(saved, { status: 201 });
-    }
 
     const supabase = await createClientServer();
     const body = await request.json();
@@ -109,4 +144,3 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

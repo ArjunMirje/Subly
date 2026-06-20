@@ -249,3 +249,21 @@
   }
 }
 
+.usageAvailable {
+  background-color: var(--success-bg, rgba(158, 206, 106, 0.08));
+  color: var(--success, #9ece6a);
+  border: 1px solid rgba(158, 206, 106, 0.2);
+}
+
+.usageInUse {
+  background-color: rgba(122, 162, 247, 0.08);
+  color: var(--primary, #7aa2f7);
+  border: 1px solid rgba(122, 162, 247, 0.2);
+}
+
+.usageConsumed {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted, #565f89);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+

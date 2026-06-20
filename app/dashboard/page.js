@@ -40,7 +40,7 @@ export default function Dashboard() {
   const safeSubscriptions = Array.isArray(subscriptions) ? subscriptions : [];
 
   // Calculate Stats
-  const activeSubs = safeSubscriptions.filter(s => s.status !== 'expired');
+  const activeSubs = safeSubscriptions.filter(s => s.status !== 'expired' || s.autopayEnabled);
   const monthlySpendCtx = activeSubs.reduce((acc, sub) => {
     if (sub.billingCycle === 'yearly') {
       return acc + (sub.cost / 12);
@@ -57,6 +57,7 @@ export default function Dashboard() {
   const upcomingRenewals = safeSubscriptions
     .filter(sub => {
       if (!sub.renewalDate) return false;
+      if (sub.autopayEnabled) return true; // Autopay ON subscriptions are always active and upcoming
       const [y, m, d] = sub.renewalDate.split('-').map(Number);
       const subDate = new Date(y, m - 1, d);
       return sub.status !== 'expired' && subDate >= todayMidnight;
@@ -66,6 +67,7 @@ export default function Dashboard() {
   const expiredRenewals = safeSubscriptions
     .filter(sub => {
       if (!sub.renewalDate) return false;
+      if (sub.autopayEnabled) return false; // Autopay ON subscriptions are never expired
       const [y, m, d] = sub.renewalDate.split('-').map(Number);
       const subDate = new Date(y, m - 1, d);
       return sub.status === 'expired' || subDate < todayMidnight;

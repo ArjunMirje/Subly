@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClientServer } from '@/lib/supabase-server';
-import { USE_MOCK_DATA } from '@/lib/config';
-import { cookies } from 'next/headers';
+import { EMAIL_VERIFICATION_ENABLED } from '@/lib/config';
 
 function logSupabaseError(label, error) {
   console.error(`=== ${label} ===`);
@@ -24,6 +23,7 @@ function logSupabaseError(label, error) {
 
 export async function POST(request) {
   try {
+    const supabase = await createClientServer();
     const body = await request.json();
     const { username, email, password, dob, gender, phone, address } = body;
 
@@ -31,21 +31,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Username, email and password are required' }, { status: 400 });
     }
 
-    if (USE_MOCK_DATA) {
-      console.log(`[API/SIGNUP] Signing up mock user: ${username} (${email})`);
-      const cookieStore = await cookies();
-      cookieStore.set('mock-session', 'true', { path: '/' });
-      return NextResponse.json({
-        message: 'Mock account created! Logged in successfully.',
-        user: {
-          id: 'mock-user-uuid',
-          email,
-          user_metadata: { username, full_name: username }
-        }
-      }, { status: 201 });
-    }
-
-    const supabase = await createClientServer();
 
 
     // 1. Check if username already taken (server-side, bypasses client RLS issues)
@@ -82,6 +67,9 @@ export async function POST(request) {
 
     if (authError) {
       logSupabaseError('Supabase auth.signUp error', authError);
+      if (authError.message.includes('rate limit') && !EMAIL_VERIFICATION_ENABLED) {
+        return NextResponse.json({ error: 'Gmail verification is turned off as the email rate has been exceeded.' }, { status: 400 });
+      }
       return NextResponse.json({ error: authError.message }, { status: 400 });
     }
 
@@ -135,8 +123,12 @@ export async function POST(request) {
 
     console.log('Profile created successfully for user:', authData.user.id);
 
+    const successMsg = EMAIL_VERIFICATION_ENABLED
+      ? 'Account created! Verification email sent. Please check your inbox.'
+      : 'Gmail verification is turned off as the email rate has been exceeded. Your account has been created successfully and you may log in immediately.';
+
     return NextResponse.json({
-      message: 'Account created! Verification email sent. Please check your inbox.',
+      message: successMsg,
       user: authData.user,
     }, { status: 201 });
 

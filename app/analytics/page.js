@@ -22,7 +22,7 @@ export default function Analytics() {
       .then(res => parseJsonResponse(res, '/api/subscriptions'))
       .then(data => {
         const safeData = Array.isArray(data) ? data : [];
-        setSubscriptions(safeData.filter(sub => sub.status !== 'expired'));
+        setSubscriptions(safeData.filter(sub => sub.status !== 'expired' || sub.autopayEnabled));
         setLoading(false);
       })
       .catch(err => {

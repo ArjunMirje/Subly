@@ -1,52 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createClientServer } from '@/lib/supabase-server';
 import { getAuthUser } from '@/lib/auth';
-import { checkSingleSubscriptionNotification } from '@/lib/cron';
+import { checkSingleSubscriptionNotification, processAutopayRenewals } from '@/lib/cron';
 
 export async function GET(request) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { USE_MOCK_DATA } = await import('@/lib/config');
-    if (USE_MOCK_DATA) {
-      const { getMockSubscriptions } = await import('@/lib/mock-db');
-      const allSubs = getMockSubscriptions();
-      
-      // Auto-update statuses based on renewal date
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const updatedSubscriptions = allSubs.map(sub => {
-        let status = 'active';
-        if (!sub.renewalDate) return sub;
-        const [year, month, day] = sub.renewalDate.split('-').map(Number);
-        const renewalDate = new Date(year, month - 1, day);
-        renewalDate.setHours(0, 0, 0, 0);
-        const diffTime = renewalDate.getTime() - today.getTime();
-        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0) {
-          status = 'expired';
-        } else if (diffDays <= 5) {
-          status = 'expiring-soon';
-        }
-        return { ...sub, status };
-      });
-      
-      const { searchParams } = new URL(request.url);
-      const filter = searchParams.get('filter') || 'all';
-      let filtered = updatedSubscriptions;
-      if (filter === 'monthly') {
-        filtered = filtered.filter(s => s.billingCycle?.toLowerCase() === 'monthly');
-      } else if (filter === 'yearly') {
-        filtered = filtered.filter(s => s.billingCycle?.toLowerCase() === 'yearly');
-      } else if (filter === 'half-yearly') {
-        filtered = filtered.filter(s => s.billingCycle?.toLowerCase() === 'half-yearly');
-      }
-      return NextResponse.json(filtered);
-    }
-
     const supabase = await createClientServer();
+    await processAutopayRenewals(supabase);
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter') || 'all';
 
@@ -73,14 +36,18 @@ export async function GET(request) {
     const today = new Date();
     const updatedSubscriptions = safeData.map(sub => {
       let status = 'active';
-      const renewalDate = new Date(sub.renewalDate);
-      const diffTime = renewalDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays < 0) {
-        status = 'expired';
-      } else if (diffDays <= 5) {
-        status = 'expiring-soon';
+      if (sub.autopayEnabled) {
+        status = 'active';
+      } else {
+        const renewalDate = new Date(sub.renewalDate);
+        const diffTime = renewalDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+          status = 'expired';
+        } else if (diffDays <= 5) {
+          status = 'expiring-soon';
+        }
       }
       return { ...sub, status };
     });
@@ -97,51 +64,6 @@ export async function POST(request) {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { USE_MOCK_DATA } = await import('@/lib/config');
-    if (USE_MOCK_DATA) {
-      const body = await request.json();
-      const { name, category, cost, billingCycle, renewalDate, url, notes, autopayEnabled,
-              couponId, couponCode, couponDiscount } = body;
-              
-      // Calculate initial status dynamically based on renewal date
-      const [year, month, day] = renewalDate.split('-').map(Number);
-      const renewalMidnight = new Date(year, month - 1, day);
-      const todayMidnight = new Date();
-      todayMidnight.setHours(0, 0, 0, 0);
-      const diffMs = renewalMidnight - todayMidnight;
-      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-      
-      let initialStatus = 'active';
-      if (diffDays < 0) {
-        initialStatus = 'expired';
-      } else if (diffDays <= 5) {
-        initialStatus = 'expiring-soon';
-      }
-      
-      const newSub = {
-        userId: user.id,
-        name,
-        category,
-        cost: parseFloat(cost),
-        billingCycle,
-        renewalDate,
-        status: initialStatus,
-        autopayEnabled: autopayEnabled === true,
-        url: url || null,
-        notes: notes || null,
-        couponId:       couponId       ?? null,
-        couponCode:     couponCode     ?? null,
-        couponDiscount: couponDiscount ?? null,
-      };
-      
-      const { saveMockSubscription } = await import('@/lib/mock-db');
-      const saved = saveMockSubscription(newSub);
-      
-      await checkSingleSubscriptionNotification(saved);
-      
-      return NextResponse.json(saved, { status: 201 });
-    }
-
     const supabase = await createClientServer();
     const body = await request.json();
     const { name, category, cost, billingCycle, renewalDate, url, notes, autopayEnabled,
@@ -156,13 +78,15 @@ export async function POST(request) {
     const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
     
     let initialStatus = 'active';
-    if (diffDays < 0) {
+    if (autopayEnabled === true) {
+      initialStatus = 'active';
+    } else if (diffDays < 0) {
       initialStatus = 'expired';
     } else if (diffDays <= 5) {
       initialStatus = 'expiring-soon';
     }
 
-    const { data: newSub, error } = await supabase
+    let { data: newSub, error } = await supabase
       .from('subscriptions')
       .insert([
         { 
@@ -186,6 +110,29 @@ export async function POST(request) {
 
     if (error) throw error;
 
+    if (couponId) {
+      const { error: couponStatusError } = await supabase
+        .from('coupons')
+        .update({ usageStatus: 'In Use' })
+        .eq('id', couponId)
+        .eq('userId', user.id);
+      if (couponStatusError) {
+        console.warn('Failed to update coupon status on subscription create:', couponStatusError.message);
+      }
+    }
+
+    if (autopayEnabled === true) {
+      await processAutopayRenewals(supabase);
+      const { data: refetched } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('id', newSub.id)
+        .single();
+      if (refetched) {
+        newSub = refetched;
+      }
+    }
+
     await checkSingleSubscriptionNotification(newSub);
 
     return NextResponse.json(newSub, { status: 201 });
@@ -193,4 +140,3 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-

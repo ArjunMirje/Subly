@@ -1,13 +1,68 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Calendar, Tag, AlertCircle, X, BellOff } from 'lucide-react';
 import styles from './NotificationDropdown.module.css';
 import { parseJsonResponse } from '@/lib/api-client';
 
-export default function NotificationDropdown({ onClose }) {
+export default function NotificationDropdown({ triggerRef, onClose }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const dropdownRef = useRef(null);
+  const [style, setStyle] = useState({});
+
+  useEffect(() => {
+    const handleLayout = () => {
+      if (!dropdownRef.current || !triggerRef?.current) return;
+
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      const isMobile = vw <= 768;
+      if (isMobile) {
+        const mobileWidth = Math.min(vw * 0.9, 420);
+        const left = (vw - mobileWidth) / 2;
+        const top = 70;
+        setStyle({
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${left}px`,
+          width: `${mobileWidth}px`,
+          maxHeight: '80vh',
+          overflowY: 'auto'
+        });
+      } else {
+        const dropdownWidth = 350; // Standard desktop width
+        let top = triggerRect.bottom + 10;
+        let left = triggerRect.right - dropdownWidth;
+
+        // Overflow adjustments
+        if (left + dropdownWidth > vw - 16) {
+          left = vw - dropdownWidth - 16;
+        }
+        if (left < 16) {
+          left = 16;
+        }
+        if (top < 0) {
+          top = 10;
+        }
+
+        setStyle({
+          position: 'fixed',
+          top: `${top}px`,
+          left: `${left}px`,
+          width: `${dropdownWidth}px`,
+          maxHeight: '80vh',
+          overflowY: 'auto'
+        });
+      }
+    };
+
+    handleLayout();
+    window.addEventListener('resize', handleLayout);
+    return () => window.removeEventListener('resize', handleLayout);
+  }, [triggerRef]);
 
   const [error, setError] = useState(null);
 
@@ -83,7 +138,7 @@ export default function NotificationDropdown({ onClose }) {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className={`glass-panel ${styles.dropdown}`}>
+    <div ref={dropdownRef} style={style} className={`glass-panel ${styles.dropdown}`}>
       {/* ── Header ── */}
       <div className={styles.header}>
         <div className={styles.titleArea}>

@@ -53,9 +53,12 @@ export default function CouponPickerModal({ subscriptionName = '', onSelect, onC
 
   // ── Live search filter ──────────────────────────────────────────────────
   const filtered = useMemo(() => {
+    // Show only Available and non-expired coupons
+    const availableCoupons = coupons.filter(c => c.usageStatus === 'Available' && !c.isExpired);
+
     const q = search.trim().toLowerCase();
-    if (!q) return coupons;
-    return coupons.filter(c =>
+    if (!q) return availableCoupons;
+    return availableCoupons.filter(c =>
       c.code?.toLowerCase().includes(q) ||
       c.service?.toLowerCase().includes(q) ||
       c.discount?.toLowerCase().includes(q)

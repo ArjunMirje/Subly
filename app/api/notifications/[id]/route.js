@@ -8,14 +8,6 @@ export async function PATCH(request, { params }) {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { USE_MOCK_DATA } = await import('@/lib/config');
-    if (USE_MOCK_DATA) {
-      const { id } = await params;
-      const { markMockNotificationAsRead } = await import('@/lib/mock-db');
-      markMockNotificationAsRead(id);
-      return NextResponse.json({ success: true });
-    }
-
     const supabase = await createClientServer();
     const { id } = await params;
     const { error } = await supabase
@@ -31,4 +23,3 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
